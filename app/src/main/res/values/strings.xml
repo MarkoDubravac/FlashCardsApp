@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">FlashCardsApp</string>
+    <string name="home_text">Home</string>
+    <string name="favorites_text">Favorites</string>
+    <string name="favorite_description">Like button</string>
+    <string name="no_cards_message">There are no cards in this deck, add new card!</string>
+    <string name="no_decks_message">There are no decks yet, add new deck!</string>
+    <string name="favorites_screen">Favorites Screen</string>
+    <string name="home_screen">Home Screen</string>
+    <string name="add_description">Add</string>
+    <string name="no_deck_exception">No deck!</string>
+    <string name="bottom_icon_description">Bottom Icon</string>
+</resources>

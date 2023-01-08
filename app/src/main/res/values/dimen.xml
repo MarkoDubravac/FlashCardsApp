@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="card_elevation">5dp</dimen>
+    <dimen name="icon_size">32dp</dimen>
+    <dimen name="number_in_circle_size">30dp</dimen>
+    <dimen name="divider_thickness">2dp</dimen>
+    <dimen name="details_card_width">350dp</dimen>
+    <dimen name="details_card_height">520dp</dimen>
+    <dimen name="deck_card_height">260dp</dimen>
+    <dimen name="top_bar_height">60dp</dimen>
+    <dimen name="bottom_bar_image_height">24dp</dimen>
+</resources>
