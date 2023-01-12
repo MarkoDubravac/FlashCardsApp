@@ -1,3 +1,5 @@
+@file:Suppress("OPT_IN_IS_NOT_ENABLED")
+
 package com.example.flashcardsapp.ui.favorites
 
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -45,30 +47,34 @@ fun FavoritesScreen(
     onNavigateToDeckDetails: (Int) -> Unit,
     onFavoriteButtonClick: (Int) -> Unit,
 ) {
-    Column(modifier = modifier.padding(MaterialTheme.spacing.small)) {
+    Column(modifier = Modifier.padding(MaterialTheme.spacing.small)) {
         Text(
             text = stringResource(id = R.string.favorites_screen),
             style = Typography.h2,
             modifier = Modifier.padding(MaterialTheme.spacing.small)
         )
-        LazyVerticalGrid(
-            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
-            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraSmallToSmall),
-            cells = GridCells.Fixed(count = 2),
-            content = {
-
-                itemsIndexed(favoritesViewState.favoriteDecks) { _, deck ->
-                    DeckCard(
-                        deckCardViewState = deck.deckCardViewState,
-                        onDeckClick = { onNavigateToDeckDetails(deck.id) },
-                        onLikeButtonClick = { onFavoriteButtonClick(deck.deckCardViewState.deckId) },
-                        modifier = modifier.height(dimensionResource(id = R.dimen.details_card_height)),
-                    )
-                }
-            },
-        )
+        if (favoritesViewState.favoriteDecks.isEmpty()) {
+            Text(text = stringResource(id = R.string.no_favorites_message))
+        } else {
+            LazyVerticalGrid(
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
+                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraSmallToSmall),
+                cells = GridCells.Fixed(count = 2),
+                content = {
+                    itemsIndexed(favoritesViewState.favoriteDecks) { _, deck ->
+                        DeckCard(
+                            deckCardViewState = deck.deckCardViewState,
+                            onDeckClick = { onNavigateToDeckDetails(deck.id) },
+                            onLikeButtonClick = { onFavoriteButtonClick(deck.deckCardViewState.deckId) },
+                            modifier = modifier.height(dimensionResource(id = R.dimen.deck_card_height)),
+                        )
+                    }
+                },
+            )
+        }
     }
 }
+
 
 @Preview
 @Composable

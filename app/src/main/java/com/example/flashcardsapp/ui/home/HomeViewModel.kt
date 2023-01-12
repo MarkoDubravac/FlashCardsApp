@@ -16,9 +16,21 @@ class HomeViewModel(
         deckRepository.decks().map { decks -> homeScreenMapper.toHomeViewState(decks) }
             .stateIn(viewModelScope, SharingStarted.Eagerly, _homeViewState.value)
 
+    fun addNewDeck(name: String) {
+        viewModelScope.launch {
+            deckRepository.insertDeck(name)
+        }
+    }
+
     fun toggleFavorite(deckId: Int) {
         viewModelScope.launch {
             deckRepository.toggleFavorites(deckId)
+        }
+    }
+
+    fun deleteDeck(deckId: Int) {
+        viewModelScope.launch {
+            deckRepository.deleteDeck(deckId)
         }
     }
 }

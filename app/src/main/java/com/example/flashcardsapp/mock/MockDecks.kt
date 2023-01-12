@@ -35,6 +35,7 @@ object MockDecks {
             answer = "Idk",
             isAnswered = false,
             isLearned = false,
+            deckId = 1
         )
     })
 

@@ -5,6 +5,7 @@ import com.example.flashcardsapp.mock.MockDecks
 import com.example.flashcardsapp.mock.MockDecks.getDecksList
 import com.example.flashcardsapp.model.Deck
 import com.example.flashcardsapp.model.DeckDetails
+import com.example.flashcardsapp.model.PlayingCard
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -12,7 +13,9 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 
+@Suppress("OPT_IN_IS_NOT_ENABLED")
 class FakeDeckRepository(
+    //private val deckDao: DeckDao,
     private val ioDispatcher: CoroutineDispatcher,
 ) : DeckRepository {
 
@@ -31,15 +34,19 @@ class FakeDeckRepository(
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun deckDetails(deckId: Int): Flow<DeckDetails> =
         FavoritesDBMock.favoriteIds.mapLatest { favoriteIds ->
-                val deckDetails = MockDecks.getDeckDetails(deckId)
-                if (favoriteIds.contains(deckDetails.deck.id)) deckDetails.copy(
-                    deck = deckDetails.deck.copy(isFavorite = true)
-                )
-                else deckDetails.copy(deck = deckDetails.deck.copy(isFavorite = false))
-            }.flowOn(ioDispatcher)
+            val deckDetails = MockDecks.getDeckDetails(deckId)
+            if (favoriteIds.contains(deckDetails.deck.id)) deckDetails.copy(
+                deck = deckDetails.deck.copy(isFavorite = true)
+            )
+            else deckDetails.copy(deck = deckDetails.deck.copy(isFavorite = false))
+        }.flowOn(ioDispatcher)
 
     override fun favoriteDecks(): Flow<List<Deck>> = decks.map { deck ->
         deck.filter { fakeDeck -> fakeDeck.isFavorite }
+    }
+
+    override fun cards(): Flow<List<PlayingCard>> {
+        TODO("Not yet implemented")
     }
 
     override suspend fun addDeckToFavorites(deckId: Int) {
@@ -56,4 +63,17 @@ class FakeDeckRepository(
         } else {
             addDeckToFavorites(deckId = deckId)
         }
+
+    override suspend fun insertDeck(name: String) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun deleteDeck(deckId: Int) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun insertCard(question: String, answer: String, deckId: Int) {
+        TODO("Not yet implemented")
+    }
+
 }

@@ -5,5 +5,6 @@ data class PlayingCard(
     val question: String,
     val answer: String,
     val isLearned: Boolean,
-    val isAnswered: Boolean
+    val isAnswered: Boolean,
+    val deckId: Int
 )
