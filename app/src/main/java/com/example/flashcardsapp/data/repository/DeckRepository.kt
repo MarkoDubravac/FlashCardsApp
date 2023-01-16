@@ -9,7 +9,7 @@ interface DeckRepository {
 
     fun decks(): Flow<List<Deck>>
 
-    fun deckDetails(deckId: Int): Flow<DeckDetails?>
+    fun deckDetails(deckId: Int): Flow<DeckDetails>
 
     fun favoriteDecks(): Flow<List<Deck>>
 
@@ -26,5 +26,11 @@ interface DeckRepository {
     suspend fun deleteDeck(deckId: Int)
 
     suspend fun insertCard(question: String, answer: String, deckId: Int)
+
+    suspend fun deleteCard(cardId: Int)
+
+    suspend fun changeIsAnswered(cardId: Int, isAnswered: Boolean)
+
+    suspend fun changeIsLearned(cardId: Int, isLearned: Boolean)
 
 }

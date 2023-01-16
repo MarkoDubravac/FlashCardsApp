@@ -76,4 +76,17 @@ class FakeDeckRepository(
         TODO("Not yet implemented")
     }
 
+    override suspend fun deleteCard(cardId: Int) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun changeIsAnswered(cardId: Int, isAnswered: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun changeIsLearned(cardId: Int, isLearned: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+
 }

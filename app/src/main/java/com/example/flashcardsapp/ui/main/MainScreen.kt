@@ -1,5 +1,8 @@
 package com.example.flashcardsapp.ui.main
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -8,6 +11,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -38,21 +42,28 @@ fun MainScreen() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
 
     var showBottomBar by remember { mutableStateOf(false) }
-
+    val density = LocalDensity.current
+    val bottomBarAnimationHeight = dimensionResource(id = R.dimen.bottom_bar_animation)
     Scaffold(
         topBar = { TopBar() },
         bottomBar = {
-            if (showBottomBar) BottomNavigationBar(
-                destination = listOf(
-                    NavigationItem.HomeDestination, NavigationItem.FavoritesDestination
-                ), onNavigateToDestination = {
-                    navController.popBackStack(
-                        NavigationItem.HomeDestination.route,
-                        inclusive = false,
-                    )
-                    navController.navigate(it.route) { launchSingleTop = true }
-                }, currentDestination = navBackStackEntry?.destination
-            )
+            AnimatedVisibility(showBottomBar,
+                enter = slideInVertically { with(density) { bottomBarAnimationHeight.roundToPx() } },
+                exit = slideOutVertically { with(density) { bottomBarAnimationHeight.roundToPx() } }) {
+                BottomNavigationBar(
+                    destination = listOf(
+                        NavigationItem.HomeDestination, NavigationItem.FavoritesDestination
+                    ), onNavigateToDestination = {
+                        navController.popBackStack(
+                            NavigationItem.HomeDestination.route,
+                            inclusive = false,
+                        )
+                        navController.navigate(it.route) { launchSingleTop = true }
+                    }, currentDestination = navBackStackEntry?.destination
+                )
+            }
+
+            //if (showBottomBar)
         },
     ) { padding ->
         Surface(
@@ -113,6 +124,7 @@ fun BottomNavigationBar(
     currentDestination: NavDestination?
 ) {
     BottomNavigation(backgroundColor = MaterialTheme.colors.background) {
+
         Row(
             modifier = Modifier
                 .fillMaxSize()

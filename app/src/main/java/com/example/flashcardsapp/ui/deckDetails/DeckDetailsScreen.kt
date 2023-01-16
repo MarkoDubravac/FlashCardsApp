@@ -1,5 +1,8 @@
 package com.example.flashcardsapp.ui.deckDetails
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -9,6 +12,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -30,9 +34,14 @@ fun DeckDetailsRoute(
     viewModel: DeckDetailsViewModel
 ) {
     val deckDetailsViewState: DeckDetailsViewState by viewModel.deckDetailsViewState.collectAsState()
-    DeckDetailsScreen(deckDetailsViewState = deckDetailsViewState, onAddClick = {
-        viewModel.insertCard(cardInsertData.question, cardInsertData.answer)
-    })
+    DeckDetailsScreen(
+        deckDetailsViewState = deckDetailsViewState,
+        onAddClick = { viewModel.insertCard(cardInsertData.question, cardInsertData.answer) },
+        onDeleteClick = viewModel::deleteCard,
+        onShowAnswerClick = { viewModel.changeIsAnswered(it, isAnswered = true) },
+        onNegativeAnswer = { viewModel.changeIsAnswered(it, isAnswered = false) },
+        onPositiveAnswer = { viewModel.changeIsLearned(it, isLearned = true) },
+    )
 }
 
 var cardInsertData = CardInsertData(question = "", answer = "")
@@ -41,11 +50,18 @@ var cardInsertData = CardInsertData(question = "", answer = "")
 fun DeckDetailsScreen(
     deckDetailsViewState: DeckDetailsViewState,
     modifier: Modifier = Modifier,
-    onAddClick: () -> Unit
+    onAddClick: () -> Unit,
+    onDeleteClick: (Int) -> Unit,
+    onShowAnswerClick: (Int) -> Unit,
+    onNegativeAnswer: (Int) -> Unit,
+    onPositiveAnswer: (Int) -> Unit,
 ) {
     var textFieldShow by remember { mutableStateOf(false) }
+    val density = LocalDensity.current
+    val enterAnimation = dimensionResource(id = R.dimen.enter_animation)
+    val exitAnimation = dimensionResource(id = R.dimen.exit_animation)
     Box(modifier = modifier.fillMaxSize()) {
-        Column {
+        Column(modifier = modifier.padding(MaterialTheme.spacing.small)) {
             DeckNameLabel(
                 name = deckDetailsViewState.name,
                 modifier = Modifier.padding(MaterialTheme.spacing.medium)
@@ -58,24 +74,36 @@ fun DeckDetailsScreen(
                 )
             } else {
                 LazyRow(
-                    contentPadding = PaddingValues(vertical = MaterialTheme.spacing.small),
+                    contentPadding = PaddingValues(vertical = MaterialTheme.spacing.extraSmall),
                     content = {
                         items(deckDetailsViewState.cards.size) { card ->
-                            PlayCard(
-                                playCardViewState = deckDetailsViewState.cards[card].playCardViewState,
+                            PlayCard(playCardViewState = deckDetailsViewState.cards[card].playCardViewState,
                                 modifier = Modifier
                                     .padding(MaterialTheme.spacing.small)
                                     .width(dimensionResource(id = R.dimen.details_card_width))
-                                    .height(dimensionResource(id = R.dimen.details_card_height))
-                            )
+                                    .height(dimensionResource(id = R.dimen.details_card_height)),
+                                onDeleteClick = { onDeleteClick(deckDetailsViewState.cards[card].playCardViewState.id) },
+                                onShowAnswerClick = { onShowAnswerClick(deckDetailsViewState.cards[card].playCardViewState.id) },
+                                onNegativeAnswer = { onNegativeAnswer(deckDetailsViewState.cards[card].playCardViewState.id) },
+                                onPositiveAnswer = { onPositiveAnswer(deckDetailsViewState.cards[card].playCardViewState.id) })
                         }
                     },
                 )
-                Row(modifier = Modifier.padding(MaterialTheme.spacing.small)) {
-                    Text(text = stringResource(id = R.string.number_of_cards))
-                    Text(text = deckDetailsViewState.size.toString())
-                }
             }
+            Text(
+                text = String.format(
+                    "%s %s",
+                    stringResource(id = R.string.number_of_cards),
+                    deckDetailsViewState.size.toString()
+                )
+            )
+            Text(
+                text = String.format(
+                    "%s %s",
+                    stringResource(id = R.string.number_of_answered_cards),
+                    deckDetailsViewState.size.toString()
+                )
+            )
         }
         FloatingActionButton(
             backgroundColor = floatingButtonColor,
@@ -93,7 +121,12 @@ fun DeckDetailsScreen(
             )
         }
 
-        if (textFieldShow) {
+        AnimatedVisibility(
+            textFieldShow,
+            enter = slideInHorizontally { with(density) { enterAnimation.roundToPx() } },
+            exit = slideOutHorizontally { with(density) { exitAnimation.roundToPx() } },
+            modifier = Modifier.align(Alignment.Center)
+        ) {
             cardInsertData = cardAddField(
                 modifier = Modifier.align(Alignment.Center),
                 onAddClick = onAddClick,

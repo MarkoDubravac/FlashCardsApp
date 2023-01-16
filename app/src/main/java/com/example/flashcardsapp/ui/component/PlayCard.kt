@@ -1,19 +1,20 @@
 package com.example.flashcardsapp.ui.component
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Card
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.flashcardsapp.R
 import com.example.flashcardsapp.ui.theme.*
 
 data class PlayCardViewState(
@@ -26,7 +27,12 @@ data class PlayCardViewState(
 
 @Composable
 fun PlayCard(
-    playCardViewState: PlayCardViewState, modifier: Modifier = Modifier
+    playCardViewState: PlayCardViewState,
+    modifier: Modifier = Modifier,
+    onDeleteClick: () -> Unit = { },
+    onShowAnswerClick: () -> Unit = { },
+    onNegativeAnswer: () -> Unit = { },
+    onPositiveAnswer: () -> Unit = { }
 ) {
     Card(
         modifier = modifier.fillMaxSize(), backgroundColor = Color.Transparent, shape = Shapes.large
@@ -40,6 +46,12 @@ fun PlayCard(
                     ),
                 )
         ) {
+            Image(painter = painterResource(id = R.drawable.ic_delete),
+                contentDescription = stringResource(id = R.string.delete_icon),
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .padding(MaterialTheme.spacing.small)
+                    .clickable { onDeleteClick() })
             Text(
                 text = playCardViewState.question,
                 textAlign = TextAlign.Center,
@@ -61,9 +73,63 @@ fun PlayCard(
                         .align(Alignment.CenterHorizontally),
                 )
             }
+            if (!playCardViewState.isLearned) {
+
+                PlayCardBottomButtons(
+                    isAnswered = playCardViewState.isAnswered,
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    onShowAnswerClick = onShowAnswerClick,
+                    onNegativeAnswer = onNegativeAnswer,
+                    onPositiveAnswer = onPositiveAnswer
+                )
+            }
         }
     }
 }
+
+@Composable
+fun PlayCardBottomButtons(
+    isAnswered: Boolean,
+    modifier: Modifier = Modifier,
+    onShowAnswerClick: () -> Unit = { },
+    onNegativeAnswer: () -> Unit = { },
+    onPositiveAnswer: () -> Unit = { }
+) {
+    Column(modifier = modifier) {
+        if (isAnswered) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(MaterialTheme.spacing.small)
+            ) {
+                Button(
+                    onClick = onNegativeAnswer,
+                    colors = ButtonDefaults.buttonColors(backgroundColor = falseRed)
+                ) {
+                    Text(text = stringResource(id = R.string.false_answer))
+                }
+                Spacer(modifier = Modifier.padding(MaterialTheme.spacing.small))
+                Button(
+                    onClick = onPositiveAnswer,
+                    colors = ButtonDefaults.buttonColors(backgroundColor = rightGreen)
+                ) {
+                    Text(text = stringResource(id = R.string.right_answer))
+                }
+            }
+        } else {
+            Button(
+                colors = ButtonDefaults.buttonColors(backgroundColor = floatingButtonColor),
+                onClick = onShowAnswerClick,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(MaterialTheme.spacing.small)
+            ) {
+                Text(text = stringResource(id = R.string.show_answer))
+            }
+        }
+    }
+}
+
 
 @Preview
 @Composable

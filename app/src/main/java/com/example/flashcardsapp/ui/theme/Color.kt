@@ -12,3 +12,6 @@ val deckCardGradiantPrimary = Color(0xFFBAC8E0)
 val deckCardGradiantSecondary = Color(0xFF6A85B6)
 
 val floatingButtonColor = Color(0xFFD8AED3)
+
+val falseRed = Color(0xFFFF8A8A)
+val rightGreen = Color(0xFF98FF98)

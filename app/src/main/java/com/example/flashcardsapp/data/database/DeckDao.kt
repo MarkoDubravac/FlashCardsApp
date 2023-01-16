@@ -33,5 +33,14 @@ interface DeckDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertCard(dbPlayingCard: DbPlayingCard)
 
+    @Query("DELETE FROM cards WHERE id = :id")
+    fun deleteCard(id: Int)
+
+    @Query("UPDATE cards SET isAnswered = :isAnswered where id = :id")
+    fun updateIsAnswered(isAnswered: Boolean, id: Int)
+
+    @Query("UPDATE cards SET isLearned = :isLearned where id = :id")
+    fun updateIsLearned(isLearned: Boolean, id: Int)
+
 
 }

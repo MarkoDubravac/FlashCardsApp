@@ -47,7 +47,9 @@ fun DeckCard(
                 .fillMaxSize()
                 .background(
                     brush = Brush.linearGradient(
-                        colors = listOf(deckCardGradiantPrimary, deckCardGradiantSecondary)
+                        colors = listOf(
+                            deckCardGradiantPrimary, deckCardGradiantSecondary
+                        )
                     ),
                 )
         ) {
@@ -55,9 +57,7 @@ fun DeckCard(
                 number = deckCardViewState.size,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(
-                        MaterialTheme.spacing.extraSmall
-                    ),
+                    .padding(MaterialTheme.spacing.extraSmall),
             )
             FavoriteButton(
                 isFavorite = deckCardViewState.isFavorite,
@@ -74,14 +74,12 @@ fun DeckCard(
                 maxLines = 5,
                 overflow = TextOverflow.Ellipsis
             )
-            Image(
-                painter = painterResource(id = R.drawable.ic_delete),
+            Image(painter = painterResource(id = R.drawable.ic_delete),
                 contentDescription = stringResource(id = R.string.delete_icon),
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(MaterialTheme.spacing.small)
-                    .clickable { onDeleteClick() }
-            )
+                    .clickable { onDeleteClick() })
         }
     }
 }
@@ -117,7 +115,7 @@ fun DeckCardPreview() {
             .padding(MaterialTheme.spacing.small)
             .width(150.dp)
             .height(240.dp),
-        onDeckClick = {},
-        onLikeButtonClick = {},
+        onDeckClick = { },
+        onLikeButtonClick = { },
     )
 }

@@ -54,7 +54,11 @@ fun FavoritesScreen(
             modifier = Modifier.padding(MaterialTheme.spacing.small)
         )
         if (favoritesViewState.favoriteDecks.isEmpty()) {
-            Text(text = stringResource(id = R.string.no_favorites_message))
+            Text(
+                text = stringResource(id = R.string.no_favorites_message),
+                style = Typography.h2,
+                modifier = Modifier.padding(MaterialTheme.spacing.small)
+            )
         } else {
             LazyVerticalGrid(
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),

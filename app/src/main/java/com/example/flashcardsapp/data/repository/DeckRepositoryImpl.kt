@@ -1,3 +1,5 @@
+@file:Suppress("OPT_IN_IS_NOT_ENABLED") @file:OptIn(ExperimentalCoroutinesApi::class)
+
 package com.example.flashcardsapp.data.repository
 
 import com.example.flashcardsapp.data.database.DbDeck
@@ -8,6 +10,8 @@ import com.example.flashcardsapp.model.Deck
 import com.example.flashcardsapp.model.DeckDetails
 import com.example.flashcardsapp.model.PlayingCard
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.runBlocking
 
@@ -21,11 +25,24 @@ class DeckRepositoryImpl(
             Deck(
                 id = dbDeck.id,
                 name = dbDeck.name,
-                size = dbDeck.size,
+                size = getDeckSize(dbDeck.id).first(),
                 isFavorite = dbDeck.isFavorite
             )
         }
-    }
+    }.flatMapLatest { decks ->
+        deckDao.getFavorites().map { favoriteDecks ->
+            decks.map { deck ->
+                Deck(
+                    isFavorite = favoriteDecks.any { it.id == deck.id },
+                    id = deck.id,
+                    size = getDeckSize(deck.id).first(),
+                    name = deck.name
+                )
+            }
+        }
+    }.shareIn(
+        scope = CoroutineScope(bgDispatcher), started = SharingStarted.Eagerly, replay = 1
+    )
 
     private val cards = deckDao.getCards().map {
         it.map { dbPlayingCard ->
@@ -38,7 +55,9 @@ class DeckRepositoryImpl(
                 deckId = dbPlayingCard.deckId
             )
         }
-    }
+    }.shareIn(
+        scope = CoroutineScope(bgDispatcher), started = SharingStarted.Eagerly, replay = 1
+    )
 
     override fun decks(): Flow<List<Deck>> = decks
 
@@ -73,6 +92,12 @@ class DeckRepositoryImpl(
         }
     }
 
+    override suspend fun deleteCard(cardId: Int) {
+        runBlocking(bgDispatcher) {
+            deckDao.deleteCard(id = cardId)
+        }
+    }
+
     private val favorites = deckDao.getFavorites().map {
         it.map { dbFavoriteDeck ->
             Deck(
@@ -88,13 +113,14 @@ class DeckRepositoryImpl(
 
     override fun cards(): Flow<List<PlayingCard>> = cards
 
+
     override suspend fun addDeckToFavorites(deckId: Int) {
         runBlocking(bgDispatcher) {
             deckDao.insertFavorite(
                 DbFavoriteDeck(
                     id = deckId,
                     name = findDeck(deckId)!!.name,
-                    size = findDeck(deckId)!!.size,
+                    size = getDeckSize(deckId).first(),
                 )
             )
         }
@@ -126,20 +152,30 @@ class DeckRepositoryImpl(
         }
     }
 
-    /*private suspend fun getCardsForDeck(deckId: Int): List<PlayingCard> {
-        val newList = mutableListOf<PlayingCard>()
-        cards.map { cards ->
-            cards.forEach {
-                if (it.deckId == deckId) {
-                    newList.add(it)
-                }
-            }
-        }.collect(newList)
-        return newList
-    }*/
-
     override fun deckDetails(deckId: Int): Flow<DeckDetails> = flow {
-        emit(DeckDetails(deck = findDeck(deckId)!!, cards = cards.first().filter { it.deckId == deckId }))
-    }.flowOn(bgDispatcher)
+        val deckDetails = DeckDetails(
+            deck = findDeck(deckId)!!,
+            cards = cards.first().filter { it.deckId == deckId })
+        emit(deckDetails)
+    }.combine(cards) { deckDetails, cards ->
+        DeckDetails(deckDetails.deck, cards.filter { it.deckId == deckId })
+    }.shareIn(
+        scope = CoroutineScope(bgDispatcher), started = SharingStarted.Eagerly, replay = 1
+    )
 
+    private suspend fun getDeckSize(deckId: Int): Flow<Int> = flow {
+        emit(cards.first().filter { it.deckId == deckId }.size)
+    }
+
+    override suspend fun changeIsAnswered(cardId: Int, isAnswered: Boolean) {
+        runBlocking(bgDispatcher) {
+            deckDao.updateIsAnswered(isAnswered = isAnswered, id = cardId)
+        }
+    }
+
+    override suspend fun changeIsLearned(cardId: Int, isLearned: Boolean) {
+        runBlocking(bgDispatcher) {
+            deckDao.updateIsLearned(isLearned = isLearned, id = cardId)
+        }
+    }
 }

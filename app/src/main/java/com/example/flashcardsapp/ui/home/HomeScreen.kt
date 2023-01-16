@@ -2,6 +2,9 @@
 
 package com.example.flashcardsapp.ui.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -14,6 +17,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -40,7 +44,7 @@ fun HomeRoute(
         onNavigateToDeckDetails = onNavigateToDeckDetails,
         onFavoriteButtonClick = viewModel::toggleFavorite,
         onAddClick = { viewModel.addNewDeck(textState) },
-        onDeleteClick = viewModel::deleteDeck
+        onDeleteClick = viewModel::deleteDeck,
     )
 }
 
@@ -55,6 +59,9 @@ fun HomeScreen(
     onAddClick: () -> Unit
 ) {
     var textFieldShow by remember { mutableStateOf(false) }
+    val density = LocalDensity.current
+    val enterAnimation = dimensionResource(id = R.dimen.enter_animation)
+    val exitAnimation = dimensionResource(id = R.dimen.exit_animation)
     Box(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.padding(MaterialTheme.spacing.small)) {
             Text(
@@ -100,15 +107,18 @@ fun HomeScreen(
             )
         }
 
-        if (textFieldShow) {
+        AnimatedVisibility(
+            textFieldShow,
+            enter = slideInHorizontally { with(density) { enterAnimation.roundToPx() } },
+            exit = slideOutHorizontally { with(density) { exitAnimation.roundToPx() } },
+            modifier = Modifier.align(Alignment.Center)
+        ) {
             textState = deckAddField(
                 modifier = Modifier.align(Alignment.Center),
                 onAddClick = { onAddClick() },
                 onBackClick = { textFieldShow = false },
             )
-
         }
-
     }
 }
 
