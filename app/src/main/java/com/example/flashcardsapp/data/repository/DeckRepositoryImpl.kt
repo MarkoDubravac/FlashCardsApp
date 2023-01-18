@@ -20,30 +20,6 @@ class DeckRepositoryImpl(
     private val bgDispatcher: CoroutineDispatcher,
 ) : DeckRepository {
 
-    private val decks = deckDao.getDecks().map {
-        it.map { dbDeck ->
-            Deck(
-                id = dbDeck.id,
-                name = dbDeck.name,
-                size = getDeckSize(dbDeck.id).first(),
-                isFavorite = dbDeck.isFavorite
-            )
-        }
-    }.flatMapLatest { decks ->
-        deckDao.getFavorites().map { favoriteDecks ->
-            decks.map { deck ->
-                Deck(
-                    isFavorite = favoriteDecks.any { it.id == deck.id },
-                    id = deck.id,
-                    size = getDeckSize(deck.id).first(),
-                    name = deck.name
-                )
-            }
-        }
-    }.shareIn(
-        scope = CoroutineScope(bgDispatcher), started = SharingStarted.Eagerly, replay = 1
-    )
-
     private val cards = deckDao.getCards().map {
         it.map { dbPlayingCard ->
             PlayingCard(
@@ -58,6 +34,40 @@ class DeckRepositoryImpl(
     }.shareIn(
         scope = CoroutineScope(bgDispatcher), started = SharingStarted.Eagerly, replay = 1
     )
+
+    private val decks = deckDao.getDecks().map {
+        it.map { dbDeck ->
+            Deck(
+                id = dbDeck.id,
+                name = dbDeck.name,
+                size = dbDeck.size,
+                isFavorite = dbDeck.isFavorite
+            )
+        }
+    }.flatMapLatest { decks ->
+        deckDao.getFavorites().map { favoriteDecks ->
+            decks.map { deck ->
+                Deck(
+                    isFavorite = favoriteDecks.any { it.id == deck.id },
+                    id = deck.id,
+                    size = deck.size,
+                    name = deck.name
+                )
+            }
+        }
+    }.combine(cards) { decks, cards ->
+        decks.map { deck ->
+            Deck(
+                id = deck.id,
+                name = deck.name,
+                size = cards.filter { it.deckId == deck.id }.size,
+                isFavorite = deck.isFavorite
+            )
+        }
+    }.shareIn(
+        scope = CoroutineScope(bgDispatcher), started = SharingStarted.Eagerly, replay = 1
+    )
+
 
     override fun decks(): Flow<List<Deck>> = decks
 
@@ -113,14 +123,14 @@ class DeckRepositoryImpl(
 
     override fun cards(): Flow<List<PlayingCard>> = cards
 
-
     override suspend fun addDeckToFavorites(deckId: Int) {
         runBlocking(bgDispatcher) {
+            val deck = findDeck(deckId)
             deckDao.insertFavorite(
                 DbFavoriteDeck(
                     id = deckId,
-                    name = findDeck(deckId)!!.name,
-                    size = getDeckSize(deckId).first(),
+                    name = deck!!.name,
+                    size = deck.size,
                 )
             )
         }
@@ -153,8 +163,7 @@ class DeckRepositoryImpl(
     }
 
     override fun deckDetails(deckId: Int): Flow<DeckDetails> = flow {
-        val deckDetails = DeckDetails(
-            deck = findDeck(deckId)!!,
+        val deckDetails = DeckDetails(deck = findDeck(deckId)!!,
             cards = cards.first().filter { it.deckId == deckId })
         emit(deckDetails)
     }.combine(cards) { deckDetails, cards ->
@@ -162,10 +171,6 @@ class DeckRepositoryImpl(
     }.shareIn(
         scope = CoroutineScope(bgDispatcher), started = SharingStarted.Eagerly, replay = 1
     )
-
-    private suspend fun getDeckSize(deckId: Int): Flow<Int> = flow {
-        emit(cards.first().filter { it.deckId == deckId }.size)
-    }
 
     override suspend fun changeIsAnswered(cardId: Int, isAnswered: Boolean) {
         runBlocking(bgDispatcher) {
@@ -178,4 +183,11 @@ class DeckRepositoryImpl(
             deckDao.updateIsLearned(isLearned = isLearned, id = cardId)
         }
     }
+
+    override suspend fun resetDeck(deckId: Int) {
+        runBlocking(bgDispatcher){
+            deckDao.resetDeck(deckId)
+        }
+    }
 }
+

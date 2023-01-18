@@ -18,8 +18,9 @@
     <string name="enter_question">Enter Question</string>
     <string name="enter_answer">Enter Answer</string>
     <string name="number_of_cards">Number Of Cards in the deck: </string>
-    <string name="number_of_answered_cards">Number Of Answered Cards in the deck: </string>
+    <string name="number_of_learned_cards">Number Of Learned Cards in the deck: </string>
     <string name="show_answer">Show Answer!</string>
     <string name="false_answer">I didn\'t know.</string>
     <string name="right_answer">I knew that!</string>
+    <string name="refresh">Refresh</string>
 </resources>

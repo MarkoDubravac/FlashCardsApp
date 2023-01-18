@@ -4,8 +4,11 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -24,6 +27,7 @@ import com.example.flashcardsapp.ui.component.DeckNameLabel
 import com.example.flashcardsapp.ui.component.PlayCard
 import com.example.flashcardsapp.ui.component.cardAddField
 import com.example.flashcardsapp.ui.deckDetails.mapper.DeckDetailsMapperImpl
+import com.example.flashcardsapp.ui.theme.ButtonBlue
 import com.example.flashcardsapp.ui.theme.Typography
 import com.example.flashcardsapp.ui.theme.floatingButtonColor
 import com.example.flashcardsapp.ui.theme.spacing
@@ -34,14 +38,13 @@ fun DeckDetailsRoute(
     viewModel: DeckDetailsViewModel
 ) {
     val deckDetailsViewState: DeckDetailsViewState by viewModel.deckDetailsViewState.collectAsState()
-    DeckDetailsScreen(
-        deckDetailsViewState = deckDetailsViewState,
+    DeckDetailsScreen(deckDetailsViewState = deckDetailsViewState,
         onAddClick = { viewModel.insertCard(cardInsertData.question, cardInsertData.answer) },
         onDeleteClick = viewModel::deleteCard,
         onShowAnswerClick = { viewModel.changeIsAnswered(it, isAnswered = true) },
         onNegativeAnswer = { viewModel.changeIsAnswered(it, isAnswered = false) },
         onPositiveAnswer = { viewModel.changeIsLearned(it, isLearned = true) },
-    )
+        onRefreshClick = { viewModel.resetDeck(deckId = deckDetailsViewState.id) })
 }
 
 var cardInsertData = CardInsertData(question = "", answer = "")
@@ -55,6 +58,7 @@ fun DeckDetailsScreen(
     onShowAnswerClick: (Int) -> Unit,
     onNegativeAnswer: (Int) -> Unit,
     onPositiveAnswer: (Int) -> Unit,
+    onRefreshClick: () -> Unit,
 ) {
     var textFieldShow by remember { mutableStateOf(false) }
     val density = LocalDensity.current
@@ -70,7 +74,9 @@ fun DeckDetailsScreen(
                 Text(
                     text = stringResource(id = R.string.no_cards_message),
                     style = Typography.h2,
-                    modifier = Modifier.padding(MaterialTheme.spacing.small)
+                    modifier = Modifier
+                        .padding(MaterialTheme.spacing.small)
+                        .align(Alignment.CenterHorizontally)
                 )
             } else {
                 LazyRow(
@@ -94,15 +100,27 @@ fun DeckDetailsScreen(
                 text = String.format(
                     "%s %s",
                     stringResource(id = R.string.number_of_cards),
-                    deckDetailsViewState.size.toString()
+                    deckDetailsViewState.cards.size.toString()
                 )
             )
             Text(
                 text = String.format(
                     "%s %s",
-                    stringResource(id = R.string.number_of_answered_cards),
-                    deckDetailsViewState.size.toString()
+                    stringResource(id = R.string.number_of_learned_cards),
+                    deckDetailsViewState.cards.filter { it.playCardViewState.isLearned }.size.toString()
                 )
+            )
+            Spacer(modifier = Modifier.padding(MaterialTheme.spacing.small))
+            Image(
+                painter = painterResource(id = R.drawable.ic_refresh),
+                contentDescription = stringResource(
+                    id = R.string.refresh
+                ),
+                modifier = Modifier
+                    .clickable { onRefreshClick() }
+                    .align(Alignment.CenterHorizontally)
+                    .background(ButtonBlue.copy(alpha = 0.6f), shape = CircleShape)
+                    .padding(MaterialTheme.spacing.small),
             )
         }
         FloatingActionButton(

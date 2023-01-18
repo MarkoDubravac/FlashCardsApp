@@ -33,4 +33,6 @@ interface DeckRepository {
 
     suspend fun changeIsLearned(cardId: Int, isLearned: Boolean)
 
+    suspend fun resetDeck(deckId: Int)
+
 }

@@ -49,4 +49,10 @@ class DeckDetailsViewModel(
             deckRepository.changeIsLearned(cardId, isLearned = isLearned)
         }
     }
+
+    fun resetDeck(deckId: Int){
+        viewModelScope.launch {
+            deckRepository.resetDeck(deckId)
+        }
+    }
 }

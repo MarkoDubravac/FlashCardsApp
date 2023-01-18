@@ -88,5 +88,9 @@ class FakeDeckRepository(
         TODO("Not yet implemented")
     }
 
+    override suspend fun resetDeck(deckId: Int) {
+        TODO("Not yet implemented")
+    }
+
 
 }

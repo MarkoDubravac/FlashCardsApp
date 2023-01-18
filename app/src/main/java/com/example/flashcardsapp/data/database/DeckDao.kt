@@ -42,5 +42,6 @@ interface DeckDao {
     @Query("UPDATE cards SET isLearned = :isLearned where id = :id")
     fun updateIsLearned(isLearned: Boolean, id: Int)
 
-
+    @Query("UPDATE cards SET isLearned = 'FALSE', isAnswered = 'FALSE' WHERE deckId = :id")
+    fun resetDeck(id: Int)
 }
