@@ -9,8 +9,8 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface DeckDao {
 
-    @Query("SELECT * FROM decks")
-    fun getDecks(): Flow<List<DbDeck>>
+    @Query("SELECT * FROM decks WHERE userId = :userId")
+    fun getDecks(userId: String): Flow<List<DbDeck>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertDeck(dbDeck: DbDeck)
@@ -18,8 +18,8 @@ interface DeckDao {
     @Query("DELETE FROM decks WHERE id = :id")
     fun deleteDeck(id: Int)
 
-    @Query("SELECT * FROM favorites")
-    fun getFavorites(): Flow<List<DbFavoriteDeck>>
+    @Query("SELECT * FROM favorites WHERE userId = :userId")
+    fun getFavorites(userId: String): Flow<List<DbFavoriteDeck>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertFavorite(dbFavoriteDeck: DbFavoriteDeck)
@@ -27,8 +27,8 @@ interface DeckDao {
     @Query("DELETE FROM favorites WHERE id = :id")
     fun deleteFavorite(id: Int)
 
-    @Query("SELECT * FROM cards")
-    fun getCards(): Flow<List<DbPlayingCard>>
+    @Query("SELECT * FROM cards WHERE userId = :userId")
+    fun getCards(userId: String): Flow<List<DbPlayingCard>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertCard(dbPlayingCard: DbPlayingCard)
@@ -44,4 +44,7 @@ interface DeckDao {
 
     @Query("UPDATE cards SET isLearned = 'FALSE', isAnswered = 'FALSE' WHERE deckId = :id")
     fun resetDeck(id: Int)
+
+    @Query("UPDATE decks SET isCompleted = 'TRUE' where id = :id")
+    fun completeDeck(id: Int)
 }

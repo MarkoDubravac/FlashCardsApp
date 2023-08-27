@@ -2,7 +2,10 @@
 
 package com.example.flashcardsapp.ui.home
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -17,6 +20,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
@@ -30,6 +34,7 @@ import com.example.flashcardsapp.ui.home.mapper.HomeScreenMapperImpl
 import com.example.flashcardsapp.ui.theme.Typography
 import com.example.flashcardsapp.ui.theme.floatingButtonColor
 import com.example.flashcardsapp.ui.theme.spacing
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
 
 var textState: String = ""
@@ -43,7 +48,7 @@ fun HomeRoute(
         homeViewState = homeViewState,
         onNavigateToDeckDetails = onNavigateToDeckDetails,
         onFavoriteButtonClick = viewModel::toggleFavorite,
-        onAddClick = { viewModel.addNewDeck(textState) },
+        onAddClick = { newName -> viewModel.addNewDeck(newName) },
         onDeleteClick = viewModel::deleteDeck,
     )
 }
@@ -56,16 +61,18 @@ fun HomeScreen(
     onNavigateToDeckDetails: (Int) -> Unit,
     onFavoriteButtonClick: (Int) -> Unit,
     onDeleteClick: (Int) -> Unit,
-    onAddClick: () -> Unit
+    onAddClick: (String) -> Unit
 ) {
     var textFieldShow by remember { mutableStateOf(false) }
     val density = LocalDensity.current
+    val context = LocalContext.current
+    val firebaseAuth = FirebaseAuth.getInstance()
     val enterAnimation = dimensionResource(id = R.dimen.enter_animation)
     val exitAnimation = dimensionResource(id = R.dimen.exit_animation)
     Box(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.padding(MaterialTheme.spacing.small)) {
             Text(
-                text = stringResource(id = R.string.home_screen),
+                text = "Hello " + (removeDomainFromEmail(firebaseAuth.currentUser?.email) ?: firebaseAuth.tenantId) + "!",
                 style = Typography.h2,
                 modifier = Modifier.padding(MaterialTheme.spacing.small)
             )
@@ -113,13 +120,44 @@ fun HomeScreen(
             exit = slideOutHorizontally { with(density) { exitAnimation.roundToPx() } },
             modifier = Modifier.align(Alignment.Center)
         ) {
-            textState = deckAddField(
+            val newName = deckAddField(
                 modifier = Modifier.align(Alignment.Center),
-                onAddClick = { onAddClick() },
+                onAddClick = {
+                    if (textState.isNotBlank()) {
+                        val isDuplicate =
+                            homeViewState.homeDecks.any { it.deckCardViewState.name == textState }
+                        if (isDuplicate) {
+                            Toast.makeText(
+                                context, "Deck with this name already exists", Toast.LENGTH_SHORT
+                            ).show()
+                        } else {
+                            onAddClick(textState)
+                        }
+                    } else {
+                        Toast.makeText(
+                            context, "Field cannot be empty", Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                },
                 onBackClick = { textFieldShow = false },
             )
+            textState = newName
         }
     }
+}
+
+fun removeDomainFromEmail(email: String?): String? {
+    val atIndex = email?.indexOf('@')
+    if (email != null) {
+         if (atIndex != -1) {
+            if (atIndex != null) {
+                return email.substring(0, atIndex)
+            }
+        } else {
+            return email
+        }
+    }
+    return null
 }
 
 @Preview

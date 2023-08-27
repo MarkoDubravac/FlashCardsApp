@@ -8,5 +8,7 @@ data class DbDeck(
     val name: String,
     val size: Int,
     val isFavorite: Boolean,
+    val isCompleted: Boolean,
+    val userId: String,
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
 )

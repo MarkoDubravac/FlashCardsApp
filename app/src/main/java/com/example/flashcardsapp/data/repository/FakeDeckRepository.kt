@@ -45,6 +45,7 @@ class FakeDeckRepository(
         deck.filter { fakeDeck -> fakeDeck.isFavorite }
     }
 
+
     override fun cards(): Flow<List<PlayingCard>> {
         TODO("Not yet implemented")
     }
@@ -89,6 +90,10 @@ class FakeDeckRepository(
     }
 
     override suspend fun resetDeck(deckId: Int) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun completeDeck(deckId: Int) {
         TODO("Not yet implemented")
     }
 

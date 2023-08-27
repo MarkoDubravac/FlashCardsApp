@@ -10,5 +10,6 @@ data class DbPlayingCard(
     val answer: String,
     val isLearned: Boolean,
     val isAnswered: Boolean,
+    val userId: String,
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
 )

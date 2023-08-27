@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">FlashCardsApp</string>
+    <string name="app_name">CardVerse</string>
     <string name="home_text">Home</string>
     <string name="favorites_text">Favorites</string>
     <string name="favorite_description">Like button</string>
@@ -23,4 +23,9 @@
     <string name="false_answer">I didn\'t know.</string>
     <string name="right_answer">I knew that!</string>
     <string name="refresh">Refresh</string>
+    <string name="completed_text">Done</string>
+    <string name="play">Play</string>
+    <string name="logout">Logout icon</string>
+    <string name="completed_screen">Completed Screen</string>
+    <string name="completed_screen_description">On this screen are all your accomplishments, CONGRATS!</string>
 </resources>

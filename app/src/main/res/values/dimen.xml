@@ -5,7 +5,7 @@
     <dimen name="number_in_circle_size">30dp</dimen>
     <dimen name="divider_thickness">2dp</dimen>
     <dimen name="details_card_width">350dp</dimen>
-    <dimen name="details_card_height">520dp</dimen>
+    <dimen name="details_card_height">420dp</dimen>
     <dimen name="deck_card_height">260dp</dimen>
     <dimen name="top_bar_height">60dp</dimen>
     <dimen name="bottom_bar_image_height">24dp</dimen>
@@ -13,4 +13,5 @@
     <dimen name="exit_animation">500dp</dimen>
     <dimen name="enter_animation">-250dp</dimen>
     <dimen name="bottom_bar_animation">60dp</dimen>
+    <dimen name="complete_card_width">350dp</dimen>
 </resources>

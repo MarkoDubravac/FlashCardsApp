@@ -5,5 +5,8 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "favorites")
 data class DbFavoriteDeck(
-    @PrimaryKey val id: Int, val name: String, val size: Int,
+    @PrimaryKey val id: Int,
+    val name: String,
+    val size: Int,
+    val userId: String,
 )

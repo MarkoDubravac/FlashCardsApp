@@ -4,7 +4,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [DbDeck::class, DbFavoriteDeck::class, DbPlayingCard::class], version = 10
+    entities = [DbDeck::class, DbFavoriteDeck::class, DbPlayingCard::class], version = 12
 )
 abstract class DecksAppDatabase : RoomDatabase() {
     abstract fun deckDao(): DeckDao

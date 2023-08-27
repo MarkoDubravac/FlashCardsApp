@@ -9,6 +9,7 @@ import com.example.flashcardsapp.data.database.DeckDao
 import com.example.flashcardsapp.model.Deck
 import com.example.flashcardsapp.model.DeckDetails
 import com.example.flashcardsapp.model.PlayingCard
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -19,8 +20,10 @@ class DeckRepositoryImpl(
     private val deckDao: DeckDao,
     private val bgDispatcher: CoroutineDispatcher,
 ) : DeckRepository {
+    private val user = FirebaseAuth.getInstance().currentUser
+    private val userId = user?.uid ?: ""
 
-    private val cards = deckDao.getCards().map {
+    private val cards = deckDao.getCards(userId).map {
         it.map { dbPlayingCard ->
             PlayingCard(
                 id = dbPlayingCard.id,
@@ -35,7 +38,7 @@ class DeckRepositoryImpl(
         scope = CoroutineScope(bgDispatcher), started = SharingStarted.Eagerly, replay = 1
     )
 
-    private val decks = deckDao.getDecks().map {
+    private val decks = deckDao.getDecks(userId).map {
         it.map { dbDeck ->
             Deck(
                 id = dbDeck.id,
@@ -45,7 +48,7 @@ class DeckRepositoryImpl(
             )
         }
     }.flatMapLatest { decks ->
-        deckDao.getFavorites().map { favoriteDecks ->
+        deckDao.getFavorites(userId).map { favoriteDecks ->
             decks.map { deck ->
                 Deck(
                     isFavorite = favoriteDecks.any { it.id == deck.id },
@@ -71,11 +74,17 @@ class DeckRepositoryImpl(
 
     override fun decks(): Flow<List<Deck>> = decks
 
+
     override suspend fun insertDeck(name: String) {
+
         runBlocking(bgDispatcher) {
             deckDao.insertDeck(
                 dbDeck = DbDeck(
-                    name = name, size = 0, isFavorite = false
+                    name = name,
+                    size = 0,
+                    isFavorite = false,
+                    isCompleted = false,
+                    userId = userId
                 )
             )
         }
@@ -97,6 +106,7 @@ class DeckRepositoryImpl(
                     isLearned = false,
                     isAnswered = false,
                     deckId = deckId,
+                    userId = userId
                 ),
             )
         }
@@ -108,7 +118,7 @@ class DeckRepositoryImpl(
         }
     }
 
-    private val favorites = deckDao.getFavorites().map {
+    private val favorites = deckDao.getFavorites(userId).map {
         it.map { dbFavoriteDeck ->
             Deck(
                 id = dbFavoriteDeck.id,
@@ -131,6 +141,7 @@ class DeckRepositoryImpl(
                     id = deckId,
                     name = deck!!.name,
                     size = deck.size,
+                    userId = userId
                 )
             )
         }
@@ -163,7 +174,8 @@ class DeckRepositoryImpl(
     }
 
     override fun deckDetails(deckId: Int): Flow<DeckDetails> = flow {
-        val deckDetails = DeckDetails(deck = findDeck(deckId)!!,
+        val deckDetails = DeckDetails(
+            deck = findDeck(deckId)!!,
             cards = cards.first().filter { it.deckId == deckId })
         emit(deckDetails)
     }.combine(cards) { deckDetails, cards ->
@@ -185,8 +197,14 @@ class DeckRepositoryImpl(
     }
 
     override suspend fun resetDeck(deckId: Int) {
-        runBlocking(bgDispatcher){
+        runBlocking(bgDispatcher) {
             deckDao.resetDeck(deckId)
+        }
+    }
+
+    override suspend fun completeDeck(deckId: Int) {
+        runBlocking(bgDispatcher) {
+            deckDao.completeDeck(deckId)
         }
     }
 }

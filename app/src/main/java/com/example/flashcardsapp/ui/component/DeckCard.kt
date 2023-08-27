@@ -12,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
@@ -38,20 +37,13 @@ fun DeckCard(
 ) {
     Card(
         modifier = modifier.clickable { onDeckClick() },
-        elevation = dimensionResource(id = R.dimen.card_elevation),
         shape = Shapes.large,
         backgroundColor = Color.Transparent
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            deckCardGradiantPrimary, deckCardGradiantSecondary
-                        )
-                    ),
-                )
+                .background(cardWhite)
         ) {
             NumberInCircle(
                 number = deckCardViewState.size,

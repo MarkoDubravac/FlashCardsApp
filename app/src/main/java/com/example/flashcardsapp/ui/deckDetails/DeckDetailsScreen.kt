@@ -35,7 +35,7 @@ import kotlinx.coroutines.Dispatchers
 
 @Composable
 fun DeckDetailsRoute(
-    viewModel: DeckDetailsViewModel
+    viewModel: DeckDetailsViewModel, onPlayClick: () -> Unit
 ) {
     val deckDetailsViewState: DeckDetailsViewState by viewModel.deckDetailsViewState.collectAsState()
     DeckDetailsScreen(deckDetailsViewState = deckDetailsViewState,
@@ -44,7 +44,9 @@ fun DeckDetailsRoute(
         onShowAnswerClick = { viewModel.changeIsAnswered(it, isAnswered = true) },
         onNegativeAnswer = { viewModel.changeIsAnswered(it, isAnswered = false) },
         onPositiveAnswer = { viewModel.changeIsLearned(it, isLearned = true) },
-        onRefreshClick = { viewModel.resetDeck(deckId = deckDetailsViewState.id) })
+        onRefreshClick = { viewModel.resetDeck(deckId = deckDetailsViewState.id) },
+        onPlayClick = onPlayClick
+    )
 }
 
 var cardInsertData = CardInsertData(question = "", answer = "")
@@ -59,6 +61,7 @@ fun DeckDetailsScreen(
     onNegativeAnswer: (Int) -> Unit,
     onPositiveAnswer: (Int) -> Unit,
     onRefreshClick: () -> Unit,
+    onPlayClick: () -> Unit
 ) {
     var textFieldShow by remember { mutableStateOf(false) }
     val density = LocalDensity.current
@@ -67,7 +70,7 @@ fun DeckDetailsScreen(
     Box(modifier = modifier.fillMaxSize()) {
         Column(modifier = modifier.padding(MaterialTheme.spacing.small)) {
             DeckNameLabel(
-                name = deckDetailsViewState.name,
+                name = "Welcome to " + deckDetailsViewState.name + "!",
                 modifier = Modifier.padding(MaterialTheme.spacing.medium)
             )
             if (deckDetailsViewState.cards.isEmpty()) {
@@ -96,7 +99,8 @@ fun DeckDetailsScreen(
                     },
                 )
             }
-            Text(
+            /* Text za opis */
+            /* Text(
                 text = String.format(
                     "%s %s",
                     stringResource(id = R.string.number_of_cards),
@@ -109,7 +113,7 @@ fun DeckDetailsScreen(
                     stringResource(id = R.string.number_of_learned_cards),
                     deckDetailsViewState.cards.filter { it.playCardViewState.isLearned }.size.toString()
                 )
-            )
+            ) */
             Spacer(modifier = Modifier.padding(MaterialTheme.spacing.small))
             Image(
                 painter = painterResource(id = R.drawable.ic_refresh),
@@ -139,6 +143,22 @@ fun DeckDetailsScreen(
             )
         }
 
+        FloatingActionButton(
+            backgroundColor = floatingButtonColor,
+            modifier = Modifier
+                .padding(
+                    start = MaterialTheme.spacing.medium,
+                    bottom = dimensionResource(id = R.dimen.bottom_fab_padding)
+                )
+                .align(alignment = Alignment.BottomStart),
+            onClick = { onPlayClick() },
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_play),
+                contentDescription = stringResource(id = R.string.play),
+            )
+        }
+
         AnimatedVisibility(
             textFieldShow,
             enter = slideInHorizontally { with(density) { enterAnimation.roundToPx() } },
@@ -160,6 +180,7 @@ fun DeckDetailsScreenPreview() {
     DeckDetailsRoute(
         viewModel = DeckDetailsViewModel(
             FakeDeckRepository(Dispatchers.IO), DeckDetailsMapperImpl(), deckId = 1
-        )
+        ),
+        onPlayClick = {}
     )
 }

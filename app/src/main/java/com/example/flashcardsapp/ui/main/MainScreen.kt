@@ -1,5 +1,7 @@
 package com.example.flashcardsapp.ui.main
 
+import android.content.Context
+import android.content.Context.MODE_PRIVATE
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -11,6 +13,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
@@ -26,13 +29,19 @@ import androidx.navigation.navArgument
 import com.example.flashcardsapp.R
 import com.example.flashcardsapp.navigation.DECK_ID_KEY
 import com.example.flashcardsapp.navigation.DeckDetailsDestination
+import com.example.flashcardsapp.navigation.LoginNavigation
 import com.example.flashcardsapp.navigation.NavigationItem
+import com.example.flashcardsapp.ui.completed.CompletedRoute
 import com.example.flashcardsapp.ui.deckDetails.DeckDetailsRoute
 import com.example.flashcardsapp.ui.favorites.FavoritesRoute
 import com.example.flashcardsapp.ui.home.HomeRoute
+import com.example.flashcardsapp.ui.signIn.SignInScreen
+import com.example.flashcardsapp.ui.signUp.SHARED_PREFS
+import com.example.flashcardsapp.ui.signUp.SignUpScreen
 import com.example.flashcardsapp.ui.theme.Typography
-import com.example.flashcardsapp.ui.theme.deckCardGradiantSecondary
+import com.example.flashcardsapp.ui.theme.mainBeige
 import com.example.flashcardsapp.ui.theme.spacing
+import com.google.firebase.auth.FirebaseAuth
 import org.koin.androidx.compose.getViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -40,19 +49,42 @@ import org.koin.core.parameter.parametersOf
 fun MainScreen() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val firebaseAuth = FirebaseAuth.getInstance()
+
+    val context = LocalContext.current
 
     var showBottomBar by remember { mutableStateOf(false) }
+    var showTopBar by remember { mutableStateOf(true) }
+    val showBackIcon = !showBottomBar
     val density = LocalDensity.current
     val bottomBarAnimationHeight = dimensionResource(id = R.dimen.bottom_bar_animation)
     Scaffold(
-        topBar = { TopBar() },
+        topBar = {
+            if(showTopBar) {
+                TopBar(
+                    navigationIcon = { if (showBackIcon) BackIcon(onBackClick = navController::popBackStack) },
+                    onLogoutClick = {
+                        firebaseAuth.signOut()
+                        val sharedPreferences =
+                            context.getSharedPreferences(SHARED_PREFS, MODE_PRIVATE)
+                        val editor = sharedPreferences.edit()
+                        editor.putString("name", "false")
+                        editor.commit()
+                        navController.navigate(LoginNavigation.SignInScreen.route)
+                    },
+                    showLogout = !showBackIcon
+                )
+            }
+        },
         bottomBar = {
             AnimatedVisibility(showBottomBar,
                 enter = slideInVertically { with(density) { bottomBarAnimationHeight.roundToPx() } },
                 exit = slideOutVertically { with(density) { bottomBarAnimationHeight.roundToPx() } }) {
                 BottomNavigationBar(
                     destination = listOf(
-                        NavigationItem.HomeDestination, NavigationItem.FavoritesDestination
+                        NavigationItem.HomeDestination,
+                        NavigationItem.FavoritesDestination,
+                        NavigationItem.CompleteDestination,
                     ), onNavigateToDestination = {
                         navController.popBackStack(
                             NavigationItem.HomeDestination.route,
@@ -62,8 +94,6 @@ fun MainScreen() {
                     }, currentDestination = navBackStackEntry?.destination
                 )
             }
-
-            //if (showBottomBar)
         },
     ) { padding ->
         Surface(
@@ -72,11 +102,51 @@ fun MainScreen() {
         ) {
             NavHost(
                 navController = navController,
-                startDestination = NavigationItem.HomeDestination.route,
+                startDestination = if (checkLogin(context)) {
+                    NavigationItem.HomeDestination.route
+                } else {
+                    LoginNavigation.SignInScreen.route
+                },
+                //NavigationItem.HomeDestination.route
                 modifier = Modifier.padding(padding)
             ) {
+                composable(LoginNavigation.SignInScreen.route) {
+                    showBottomBar = false
+                    showTopBar = false
+                    SignInScreen(
+                        viewModel = getViewModel(),
+                        onSignIn = {
+                            navController.navigate(
+                                NavigationItem.HomeDestination.route
+                            )
+                        },
+                        goToSignUp = {
+                            navController.navigate(
+                                LoginNavigation.SignUpScreen.route
+                            )
+                        }
+                    )
+                }
+                composable(LoginNavigation.SignUpScreen.route) {
+                    showBottomBar = false
+                    showTopBar = false
+                    SignUpScreen(
+                        viewModel = getViewModel(),
+                        onSignUp = {
+                            navController.navigate(
+                                NavigationItem.HomeDestination.route
+                            )
+                        },
+                        goToSignIn = {
+                            navController.navigate(
+                                LoginNavigation.SignInScreen.route
+                            )
+                        }
+                    )
+                }
                 composable(NavigationItem.HomeDestination.route) {
                     showBottomBar = true
+                    showTopBar = true
                     HomeRoute(
                         viewModel = getViewModel(),
                         onNavigateToDeckDetails = { id ->
@@ -88,6 +158,7 @@ fun MainScreen() {
                 }
                 composable(NavigationItem.FavoritesDestination.route) {
                     showBottomBar = true
+                    showTopBar = true
                     FavoritesRoute(
                         viewModel = getViewModel(),
                         onNavigateToDeckDetails = { id ->
@@ -97,11 +168,19 @@ fun MainScreen() {
                         },
                     )
                 }
+
+                composable(NavigationItem.CompleteDestination.route) {
+                    showBottomBar = true
+                    showTopBar = true
+                    CompletedRoute(viewModel = getViewModel())
+                }
+
                 composable(
                     route = DeckDetailsDestination.route,
                     arguments = listOf(navArgument(DECK_ID_KEY) { type = NavType.IntType }),
                 ) {
                     showBottomBar = false
+                    showTopBar = true
                     DeckDetailsRoute(
                         viewModel = getViewModel {
                             parametersOf(
@@ -110,6 +189,8 @@ fun MainScreen() {
                                 ) ?: throw IllegalArgumentException("No deck!")
                             )
                         },
+                        //todo
+                        onPlayClick = {}
                     )
                 }
             }
@@ -123,8 +204,7 @@ fun BottomNavigationBar(
     onNavigateToDestination: (NavigationItem) -> Unit,
     currentDestination: NavDestination?
 ) {
-    BottomNavigation(backgroundColor = MaterialTheme.colors.background) {
-
+    BottomNavigation(backgroundColor = mainBeige) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
@@ -155,18 +235,69 @@ fun BottomNavigationBar(
 }
 
 @Composable
-fun TopBar() {
+private fun BackIcon(
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Image(
+        painter = painterResource(id = R.drawable.ic_back_icon),
+        contentDescription = stringResource(id = R.string.back),
+        modifier = modifier
+            .clickable { onBackClick() }
+            .padding(start = MaterialTheme.spacing.medium)
+            .size(dimensionResource(id = R.dimen.number_in_circle_size)),
+        alignment = Alignment.Center,
+    )
+}
+
+@Composable
+private fun LogoutIcon(
+    onLogoutClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Image(
+        painter = painterResource(id = R.drawable.ic_logout),
+        contentDescription = stringResource(id = R.string.logout),
+        modifier = modifier
+            .clickable { onLogoutClick() }
+            .padding(end = MaterialTheme.spacing.medium)
+            .size(dimensionResource(id = R.dimen.number_in_circle_size)),
+        alignment = Alignment.Center,
+    )
+}
+
+@Composable
+fun TopBar(
+    navigationIcon: @Composable (() -> Unit)? = null,
+    onLogoutClick: () -> Unit,
+    showLogout: Boolean,
+) {
     Box(
         modifier = Modifier
-            .background(deckCardGradiantSecondary)
+            .background(mainBeige)
             .fillMaxWidth()
             .height(dimensionResource(id = R.dimen.top_bar_height)),
         contentAlignment = Alignment.CenterStart,
     ) {
+        navigationIcon?.invoke()
         Text(
             text = stringResource(id = R.string.app_name),
             style = Typography.h1,
             modifier = Modifier.align(Alignment.Center),
         )
+        if (showLogout) {
+            LogoutIcon(
+                onLogoutClick = { onLogoutClick() }, modifier = Modifier.align(Alignment.CenterEnd)
+            )
+        }
     }
+}
+
+private fun checkLogin(context: Context): Boolean {
+    val sharedPreferences = context.getSharedPreferences(SHARED_PREFS, MODE_PRIVATE)
+    val check = sharedPreferences.getString("name", "")
+    if (check.equals("true")) {
+        return true
+    }
+    return false
 }
