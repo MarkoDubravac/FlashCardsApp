@@ -2,10 +2,7 @@
 
 package com.example.flashcardsapp.ui.home
 
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.updateTransition
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -28,16 +25,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.flashcardsapp.R
 import com.example.flashcardsapp.data.repository.FakeDeckRepository
+import com.example.flashcardsapp.ui.component.DeckAddField
 import com.example.flashcardsapp.ui.component.DeckCard
-import com.example.flashcardsapp.ui.component.deckAddField
 import com.example.flashcardsapp.ui.home.mapper.HomeScreenMapperImpl
 import com.example.flashcardsapp.ui.theme.Typography
 import com.example.flashcardsapp.ui.theme.floatingButtonColor
 import com.example.flashcardsapp.ui.theme.spacing
+import com.example.flashcardsapp.util.showToast
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
-
-var textState: String = ""
 
 @Composable
 fun HomeRoute(
@@ -72,7 +68,8 @@ fun HomeScreen(
     Box(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.padding(MaterialTheme.spacing.small)) {
             Text(
-                text = "Hello " + (removeDomainFromEmail(firebaseAuth.currentUser?.email) ?: firebaseAuth.tenantId) + "!",
+                text = "Hello " + (removeDomainFromEmail(firebaseAuth.currentUser?.email)
+                    ?: firebaseAuth.tenantId) + "!",
                 style = Typography.h2,
                 modifier = Modifier.padding(MaterialTheme.spacing.small)
             )
@@ -120,28 +117,27 @@ fun HomeScreen(
             exit = slideOutHorizontally { with(density) { exitAnimation.roundToPx() } },
             modifier = Modifier.align(Alignment.Center)
         ) {
-            val newName = deckAddField(
+            DeckAddField(
                 modifier = Modifier.align(Alignment.Center),
-                onAddClick = {
-                    if (textState.isNotBlank()) {
-                        val isDuplicate =
-                            homeViewState.homeDecks.any { it.deckCardViewState.name == textState }
-                        if (isDuplicate) {
-                            Toast.makeText(
-                                context, "Deck with this name already exists", Toast.LENGTH_SHORT
-                            ).show()
-                        } else {
-                            onAddClick(textState)
+                onAddClick = { enteredName ->
+                    val isDuplicate =
+                        homeViewState.homeDecks.any { it.deckCardViewState.name == enteredName }
+
+                    when {
+                        enteredName.isNotBlank() -> {
+                            if (isDuplicate) {
+                                showToast("Deck with this name already exists", context)
+                            } else {
+                                onAddClick(enteredName)
+                                showToast("New Deck Added", context)
+                            }
                         }
-                    } else {
-                        Toast.makeText(
-                            context, "Field cannot be empty", Toast.LENGTH_SHORT
-                        ).show()
+                        else -> showToast("Field cannot be empty", context)
                     }
                 },
                 onBackClick = { textFieldShow = false },
+                openDialog = textFieldShow,
             )
-            textState = newName
         }
     }
 }
@@ -149,7 +145,7 @@ fun HomeScreen(
 fun removeDomainFromEmail(email: String?): String? {
     val atIndex = email?.indexOf('@')
     if (email != null) {
-         if (atIndex != -1) {
+        if (atIndex != -1) {
             if (atIndex != null) {
                 return email.substring(0, atIndex)
             }

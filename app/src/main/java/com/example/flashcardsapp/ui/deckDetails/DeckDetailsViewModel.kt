@@ -50,7 +50,7 @@ class DeckDetailsViewModel(
         }
     }
 
-    fun resetDeck(deckId: Int){
+    fun resetDeck(deckId: Int) {
         viewModelScope.launch {
             deckRepository.resetDeck(deckId)
         }

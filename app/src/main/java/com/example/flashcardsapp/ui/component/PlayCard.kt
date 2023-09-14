@@ -5,7 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -32,8 +32,10 @@ fun PlayCard(
     onDeleteClick: () -> Unit = { },
     onShowAnswerClick: () -> Unit = { },
     onNegativeAnswer: () -> Unit = { },
-    onPositiveAnswer: () -> Unit = { }
+    onPositiveAnswer: () -> Unit = { },
+    canDelete: Boolean
 ) {
+    var showDialog by remember { mutableStateOf(false) }
     Card(
         modifier = modifier.fillMaxSize(), backgroundColor = Color.Transparent, shape = Shapes.large
     ) {
@@ -46,12 +48,14 @@ fun PlayCard(
                     ),
                 )
         ) {
-            Image(painter = painterResource(id = R.drawable.ic_delete),
-                contentDescription = stringResource(id = R.string.delete_icon),
-                modifier = Modifier
-                    .align(Alignment.End)
-                    .padding(MaterialTheme.spacing.small)
-                    .clickable { onDeleteClick() })
+            if (canDelete) {
+                Image(painter = painterResource(id = R.drawable.ic_delete),
+                    contentDescription = stringResource(id = R.string.delete_icon),
+                    modifier = Modifier
+                        .align(Alignment.End)
+                        .padding(MaterialTheme.spacing.small)
+                        .clickable { showDialog = true })
+            }
             Text(
                 text = playCardViewState.question,
                 textAlign = TextAlign.Center,
@@ -73,15 +77,19 @@ fun PlayCard(
                         .align(Alignment.CenterHorizontally),
                 )
             }
-            if (!playCardViewState.isLearned) {
+            PlayCardBottomButtons(
+                isAnswered = playCardViewState.isAnswered,
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                onShowAnswerClick = onShowAnswerClick,
+                onNegativeAnswer = onNegativeAnswer,
+                onPositiveAnswer = onPositiveAnswer
+            )
 
-                PlayCardBottomButtons(
-                    isAnswered = playCardViewState.isAnswered,
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                    onShowAnswerClick = onShowAnswerClick,
-                    onNegativeAnswer = onNegativeAnswer,
-                    onPositiveAnswer = onPositiveAnswer
-                )
+            if (showDialog) {
+                DeleteConfirmationDialog(onConfirm = {
+                    onDeleteClick()
+                    showDialog = false
+                }, onDismiss = { showDialog = false }, name = "this card")
             }
         }
     }
@@ -99,19 +107,29 @@ fun PlayCardBottomButtons(
         if (isAnswered) {
             Row(
                 modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
+                    .fillMaxWidth()
                     .padding(MaterialTheme.spacing.small)
             ) {
                 Button(
                     onClick = onNegativeAnswer,
-                    colors = ButtonDefaults.buttonColors(backgroundColor = falseRed)
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(MaterialTheme.spacing.small),
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = falseRed, contentColor = Color.Black
+                    )
                 ) {
                     Text(text = stringResource(id = R.string.false_answer))
                 }
-                Spacer(modifier = Modifier.padding(MaterialTheme.spacing.small))
+                Spacer(modifier = Modifier.width(MaterialTheme.spacing.small))
                 Button(
                     onClick = onPositiveAnswer,
-                    colors = ButtonDefaults.buttonColors(backgroundColor = rightGreen)
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(MaterialTheme.spacing.small),
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = rightGreen, contentColor = Color.Black
+                    )
                 ) {
                     Text(text = stringResource(id = R.string.right_answer))
                 }
@@ -141,5 +159,5 @@ fun PlayCardPreview() {
         isLearned = true,
         isAnswered = true
     )
-    PlayCard(playCardViewState = playCardViewState)
+    PlayCard(playCardViewState = playCardViewState, canDelete = false)
 }

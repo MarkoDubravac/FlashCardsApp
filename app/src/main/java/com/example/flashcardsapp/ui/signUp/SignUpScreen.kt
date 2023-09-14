@@ -31,6 +31,9 @@ fun SignUpScreen(
     var password by rememberSaveable {
         mutableStateOf("")
     }
+    var confirmPassword by rememberSaveable {
+        mutableStateOf("")
+    }
 
 
     val scope = rememberCoroutineScope()
@@ -89,6 +92,27 @@ fun SignUpScreen(
             placeholder = {
                 Text(text = "Password", color = Color.Gray)
             })
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TextField(value = confirmPassword,
+            onValueChange = {
+                confirmPassword = it
+            },
+            visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.textFieldColors(
+                backgroundColor = Color.White,
+                cursorColor = Color.Black,
+                disabledLabelColor = Color.Gray,
+                unfocusedIndicatorColor = Color.Transparent,
+                focusedIndicatorColor = Color.Transparent,
+                textColor = Color.Black
+            ),
+            shape = RoundedCornerShape(8.dp),
+            singleLine = true,
+            placeholder = {
+                Text(text = "Reenter password", color = Color.Gray)
+            })
 
         Button(
             onClick = {
@@ -129,13 +153,18 @@ fun SignUpScreen(
         LaunchedEffect(key1 = state.value?.isSuccess) {
             scope.launch {
                 if (state.value?.isSuccess?.isNotEmpty() == true) {
-                    val sharedPreferences = context.getSharedPreferences(SHARED_PREFS, MODE_PRIVATE)
-                    val editor = sharedPreferences.edit()
-                    editor.putString("name", "true")
-                    editor.apply()
-                    val success = state.value?.isSuccess
-                    onSignUp()
-                    Toast.makeText(context, "$success", Toast.LENGTH_LONG).show()
+                    if (confirmPassword == password) {
+                        val sharedPreferences =
+                            context.getSharedPreferences(SHARED_PREFS, MODE_PRIVATE)
+                        val editor = sharedPreferences.edit()
+                        editor.putString("name", "true")
+                        editor.apply()
+                        val success = state.value?.isSuccess
+                        onSignUp()
+                        Toast.makeText(context, "$success", Toast.LENGTH_LONG).show()
+                    } else {
+                        Toast.makeText(context, "Passwords don't match!", Toast.LENGTH_LONG).show()
+                    }
                 }
             }
         }

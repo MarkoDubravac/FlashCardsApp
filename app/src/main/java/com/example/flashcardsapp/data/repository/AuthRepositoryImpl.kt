@@ -31,5 +31,11 @@ class AuthRepositoryImpl(
         }
     }
 
+    override fun logoutUser() {
+        firebaseAuth.signOut()
+    }
+
+
+
 
 }

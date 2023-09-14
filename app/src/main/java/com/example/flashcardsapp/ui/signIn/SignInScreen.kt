@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.flashcardsapp.ui.theme.buttonDarkBrown
 import com.example.flashcardsapp.ui.theme.buttonLightBrown
+import com.example.flashcardsapp.ui.theme.spacing
 import kotlinx.coroutines.launch
 
 const val SHARED_PREFS = "sharedPrefs"
@@ -39,7 +40,9 @@ fun SignInScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(start = 30.dp, end = 30.dp),
+            .padding(
+                start = MaterialTheme.spacing.almostLarge, end = MaterialTheme.spacing.almostLarge
+            ),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

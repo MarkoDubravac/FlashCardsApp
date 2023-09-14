@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 class SignUpViewModel(
     private val repository: AuthRepository
 ) : ViewModel() {
-    val _signUpState = Channel<SignInState>()
+    private val _signUpState = Channel<SignInState>()
     val signUpState = _signUpState.receiveAsFlow()
 
     fun registerUser(email: String, password: String) = viewModelScope.launch {

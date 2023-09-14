@@ -4,10 +4,10 @@ import android.app.Application
 import com.example.flashcardsapp.data.di.dataModule
 import com.example.flashcardsapp.data.di.databaseModule
 import com.example.flashcardsapp.data.di.firebaseAuthModule
-import com.example.flashcardsapp.ui.completed.di.completedModule
 import com.example.flashcardsapp.ui.deckDetails.di.deckDetailsModule
 import com.example.flashcardsapp.ui.favorites.di.favoritesModule
 import com.example.flashcardsapp.ui.home.di.homeModule
+import com.example.flashcardsapp.ui.play.di.playModule
 import com.example.flashcardsapp.ui.signIn.di.signInModule
 import com.example.flashcardsapp.ui.signUp.di.signUpModule
 import org.koin.android.ext.koin.androidContext
@@ -24,7 +24,7 @@ class FlashCardApp : Application() {
                 homeModule,
                 favoritesModule,
                 deckDetailsModule,
-                completedModule,
+                playModule,
                 firebaseAuthModule,
                 dataModule,
                 databaseModule

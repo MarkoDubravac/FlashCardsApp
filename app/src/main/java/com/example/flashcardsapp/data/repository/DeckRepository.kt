@@ -36,5 +36,4 @@ interface DeckRepository {
     suspend fun resetDeck(deckId: Int)
 
     suspend fun completeDeck(deckId: Int)
-
 }

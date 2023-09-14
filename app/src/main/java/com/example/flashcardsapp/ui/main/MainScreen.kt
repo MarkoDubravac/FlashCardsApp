@@ -8,6 +8,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -27,14 +28,12 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.flashcardsapp.R
-import com.example.flashcardsapp.navigation.DECK_ID_KEY
-import com.example.flashcardsapp.navigation.DeckDetailsDestination
-import com.example.flashcardsapp.navigation.LoginNavigation
-import com.example.flashcardsapp.navigation.NavigationItem
-import com.example.flashcardsapp.ui.completed.CompletedRoute
+import com.example.flashcardsapp.navigation.*
+import com.example.flashcardsapp.ui.info.InfoRoute
 import com.example.flashcardsapp.ui.deckDetails.DeckDetailsRoute
 import com.example.flashcardsapp.ui.favorites.FavoritesRoute
 import com.example.flashcardsapp.ui.home.HomeRoute
+import com.example.flashcardsapp.ui.play.PlayRoute
 import com.example.flashcardsapp.ui.signIn.SignInScreen
 import com.example.flashcardsapp.ui.signUp.SHARED_PREFS
 import com.example.flashcardsapp.ui.signUp.SignUpScreen
@@ -45,12 +44,13 @@ import com.google.firebase.auth.FirebaseAuth
 import org.koin.androidx.compose.getViewModel
 import org.koin.core.parameter.parametersOf
 
+val interactionSource = MutableInteractionSource()
+
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val firebaseAuth = FirebaseAuth.getInstance()
-
     val context = LocalContext.current
 
     var showBottomBar by remember { mutableStateOf(false) }
@@ -60,7 +60,7 @@ fun MainScreen() {
     val bottomBarAnimationHeight = dimensionResource(id = R.dimen.bottom_bar_animation)
     Scaffold(
         topBar = {
-            if(showTopBar) {
+            if (showTopBar) {
                 TopBar(
                     navigationIcon = { if (showBackIcon) BackIcon(onBackClick = navController::popBackStack) },
                     onLogoutClick = {
@@ -84,7 +84,7 @@ fun MainScreen() {
                     destination = listOf(
                         NavigationItem.HomeDestination,
                         NavigationItem.FavoritesDestination,
-                        NavigationItem.CompleteDestination,
+                        NavigationItem.InfoDestination,
                     ), onNavigateToDestination = {
                         navController.popBackStack(
                             NavigationItem.HomeDestination.route,
@@ -101,8 +101,7 @@ fun MainScreen() {
             modifier = Modifier.fillMaxSize(),
         ) {
             NavHost(
-                navController = navController,
-                startDestination = if (checkLogin(context)) {
+                navController = navController, startDestination = if (checkLogin(context)) {
                     NavigationItem.HomeDestination.route
                 } else {
                     LoginNavigation.SignInScreen.route
@@ -113,36 +112,28 @@ fun MainScreen() {
                 composable(LoginNavigation.SignInScreen.route) {
                     showBottomBar = false
                     showTopBar = false
-                    SignInScreen(
-                        viewModel = getViewModel(),
-                        onSignIn = {
-                            navController.navigate(
-                                NavigationItem.HomeDestination.route
-                            )
-                        },
-                        goToSignUp = {
-                            navController.navigate(
-                                LoginNavigation.SignUpScreen.route
-                            )
-                        }
-                    )
+                    SignInScreen(viewModel = getViewModel(), onSignIn = {
+                        navController.navigate(
+                            NavigationItem.HomeDestination.route
+                        )
+                    }, goToSignUp = {
+                        navController.navigate(
+                            LoginNavigation.SignUpScreen.route
+                        )
+                    })
                 }
                 composable(LoginNavigation.SignUpScreen.route) {
                     showBottomBar = false
                     showTopBar = false
-                    SignUpScreen(
-                        viewModel = getViewModel(),
-                        onSignUp = {
-                            navController.navigate(
-                                NavigationItem.HomeDestination.route
-                            )
-                        },
-                        goToSignIn = {
-                            navController.navigate(
-                                LoginNavigation.SignInScreen.route
-                            )
-                        }
-                    )
+                    SignUpScreen(viewModel = getViewModel(), onSignUp = {
+                        navController.navigate(
+                            NavigationItem.HomeDestination.route
+                        )
+                    }, goToSignIn = {
+                        navController.navigate(
+                            LoginNavigation.SignInScreen.route
+                        )
+                    })
                 }
                 composable(NavigationItem.HomeDestination.route) {
                     showBottomBar = true
@@ -169,10 +160,10 @@ fun MainScreen() {
                     )
                 }
 
-                composable(NavigationItem.CompleteDestination.route) {
+                composable(NavigationItem.InfoDestination.route) {
                     showBottomBar = true
                     showTopBar = true
-                    CompletedRoute(viewModel = getViewModel())
+                    InfoRoute()
                 }
 
                 composable(
@@ -181,17 +172,35 @@ fun MainScreen() {
                 ) {
                     showBottomBar = false
                     showTopBar = true
-                    DeckDetailsRoute(
-                        viewModel = getViewModel {
-                            parametersOf(
-                                it.arguments?.getInt(
-                                    DECK_ID_KEY
-                                ) ?: throw IllegalArgumentException("No deck!")
-                            )
-                        },
+                    DeckDetailsRoute(viewModel = getViewModel {
+                        parametersOf(
+                            it.arguments?.getInt(
+                                DECK_ID_KEY
+                            ) ?: throw IllegalArgumentException("No deck!")
+                        )
+                    },
                         //todo
-                        onPlayClick = {}
-                    )
+                        onPlayClick = { id ->
+                            navController.navigate(
+                                PlayCardDestination.createNavigationRoute(id)
+
+                            )
+                        })
+                }
+
+                composable(
+                    route = PlayCardDestination.route,
+                    arguments = listOf(navArgument(DECK_ID_KEY) { type = NavType.IntType }),
+                ) {
+                    showBottomBar = false
+                    showTopBar = false
+                    PlayRoute(viewModel = getViewModel {
+                        parametersOf(
+                            it.arguments?.getInt(
+                                DECK_ID_KEY
+                            ) ?: throw IllegalArgumentException("No deck!")
+                        )
+                    })
                 }
             }
         }
@@ -220,7 +229,9 @@ fun BottomNavigationBar(
                             contentDescription = stringResource(id = R.string.bottom_icon_description),
                             modifier = Modifier
                                 .size(dimensionResource(id = R.dimen.bottom_bar_image_height))
-                                .clickable { onNavigateToDestination(destination) },
+                                .clickable(
+                                    interactionSource = interactionSource, indication = null
+                                ) { onNavigateToDestination(destination) },
                         )
                     }
                     Text(
@@ -243,7 +254,9 @@ private fun BackIcon(
         painter = painterResource(id = R.drawable.ic_back_icon),
         contentDescription = stringResource(id = R.string.back),
         modifier = modifier
-            .clickable { onBackClick() }
+            .clickable(
+                interactionSource = interactionSource, indication = null
+            ) { onBackClick() }
             .padding(start = MaterialTheme.spacing.medium)
             .size(dimensionResource(id = R.dimen.number_in_circle_size)),
         alignment = Alignment.Center,
@@ -259,7 +272,9 @@ private fun LogoutIcon(
         painter = painterResource(id = R.drawable.ic_logout),
         contentDescription = stringResource(id = R.string.logout),
         modifier = modifier
-            .clickable { onLogoutClick() }
+            .clickable(
+                interactionSource = interactionSource, indication = null
+            ) { onLogoutClick() }
             .padding(end = MaterialTheme.spacing.medium)
             .size(dimensionResource(id = R.dimen.number_in_circle_size)),
         alignment = Alignment.Center,

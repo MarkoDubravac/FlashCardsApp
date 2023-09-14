@@ -10,17 +10,15 @@ import com.example.flashcardsapp.model.Deck
 import com.example.flashcardsapp.model.DeckDetails
 import com.example.flashcardsapp.model.PlayingCard
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.runBlocking
 
 class DeckRepositoryImpl(
     private val deckDao: DeckDao,
     private val bgDispatcher: CoroutineDispatcher,
+    auth: FirebaseAuth
 ) : DeckRepository {
-    private val user = FirebaseAuth.getInstance().currentUser
+    private val user = auth.currentUser
     private val userId = user?.uid ?: ""
 
     private val cards = deckDao.getCards(userId).map {
@@ -208,4 +206,3 @@ class DeckRepositoryImpl(
         }
     }
 }
-

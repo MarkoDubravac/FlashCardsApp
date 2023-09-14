@@ -26,10 +26,10 @@ sealed class NavigationItem(
         labelId = R.string.favorites_text,
     )
 
-    object CompleteDestination : NavigationItem(
+    object InfoDestination : NavigationItem(
         route = COMPLETED_ROUTE,
-        selectedIconId = R.drawable.ic_completed_filled,
-        unselectedIconId = R.drawable.ic_completed_outlined,
-        labelId = R.string.completed_text,
+        selectedIconId = R.drawable.ic_info_fill,
+        unselectedIconId = R.drawable.ic_info,
+        labelId = R.string.info_text,
     )
 }

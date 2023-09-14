@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 class SignInViewModel(
     private val repository: AuthRepository
 ) : ViewModel() {
-    val _signInState = Channel<SignInState>()
+    private val _signInState = Channel<SignInState>()
     val signInState = _signInState.receiveAsFlow()
 
     fun loginUser(email: String, password: String) = viewModelScope.launch {

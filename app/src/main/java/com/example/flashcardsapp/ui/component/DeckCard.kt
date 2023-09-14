@@ -8,7 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,6 +35,7 @@ fun DeckCard(
     onLikeButtonClick: () -> Unit = { },
     onDeleteClick: () -> Unit = { }
 ) {
+    var showDialog by remember { mutableStateOf(false) }
     Card(
         modifier = modifier.clickable { onDeckClick() },
         shape = Shapes.large,
@@ -71,7 +72,16 @@ fun DeckCard(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(MaterialTheme.spacing.small)
-                    .clickable { onDeleteClick() })
+                    .clickable {
+                        showDialog = true
+                    })
+
+            if (showDialog) {
+                DeleteConfirmationDialog(onConfirm = {
+                    onDeleteClick()
+                    showDialog = false
+                }, onDismiss = { showDialog = false }, name = deckCardViewState.name)
+            }
         }
     }
 }
