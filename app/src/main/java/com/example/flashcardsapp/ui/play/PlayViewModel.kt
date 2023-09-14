@@ -48,10 +48,8 @@ class PlayViewModel(
             val learnedCards = cardsInDeck.filter { it.isLearned }
             val unlearnedCards = cardsInDeck.filterNot { it.isLearned }
             val selectedCard = if (learnedCards.isNotEmpty() && Random.nextFloat() < 0.2f) {
-                // Select a learned card with 20% chance
                 selectRandomCard(learnedCards)
             } else if (unlearnedCards.isNotEmpty()) {
-                // Select an unlearned card with 80% chance
                 selectRandomCard(unlearnedCards)
             } else {
                 selectRandomCard(cardsInDeck)
